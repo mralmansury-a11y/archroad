@@ -1,0 +1,18 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% set page_label = 'تقييم جديد' %}{% set active_panel = 'performance' %}
+{% set scale = [('5','5 — ممتاز'),('4','4 — جيد جداً'),('3','3 — جيد'),('2','2 — مقبول'),('1','1 — ضعيف')] %}
+{% block content %}
+{{ m.page_head('تقييم أداء جديد') }}
+<div class="card"><div class="card-body"><form method="POST">{{ m.csrf() }}
+<div class="form-grid">
+  {{ m.select('الموظف', 'employee_id', emps, form.employee_id, True, 'اختر الموظف') }}
+  {{ m.input('الفترة', 'period', form.period, required=True, attrs='placeholder="2026-Q4"') }}
+  {{ m.select('جودة العمل', 'quality', scale, form.quality, True, 'اختر') }}
+  {{ m.select('الإنتاجية', 'productivity', scale, form.productivity, True, 'اختر') }}
+  {{ m.select('العمل الجماعي', 'teamwork', scale, form.teamwork, True, 'اختر') }}
+  {{ m.select('الالتزام والانضباط', 'commitment', scale, form.commitment, True, 'اختر') }}
+  {{ m.textarea('ملاحظات', 'notes', form.notes) }}
+</div>
+<div class="form-actions"><button class="btn btn-primary" type="submit">حفظ التقييم</button><a class="btn" href="{{ url_for('performance.index') }}">إلغاء</a></div>
+</form></div></div>
+{% endblock %}

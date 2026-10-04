@@ -1,0 +1,21 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% set page_label = 'تفاصيل الدورة' %}{% set active_panel = 'training' %}
+{% block content %}
+{% call m.page_head(t.title, (t.trainer or 'بدون مدرّب') ~ ' · ' ~ (t.location or 'بدون مكان') ~ ' · ' ~ t.start_date ~ ' ← ' ~ t.end_date) %}
+  <span class="pill {{ {'upcoming':'info','ongoing':'good','finished':'gray'}[state[0]] }}">{{ state[1] }}</span>
+  <a class="btn" href="{{ url_for('training.edit', tid=t.id) }}">تعديل</a>
+  {{ m.post_btn(url_for('training.delete', tid=t.id), 'حذف', 'btn btn-danger', 'حذف الدورة وكل التسجيلات؟') }}
+{% endcall %}
+{% if t.description %}<p class="muted" style="margin:-8px 0 16px">{{ t.description }}</p>{% endif %}
+<div class="card"><div class="card-head"><h3>المسجّلون ({{ people|length }} / {{ t.seats }})</h3>
+  <form class="inline-form" method="POST" action="{{ url_for('training.enroll', tid=t.id) }}">{{ m.csrf() }}
+    <select name="employee_id" aria-label="موظف"><option value="">اختر موظفاً للتسجيل</option>{% for e in available %}<option value="{{ e.id }}">{{ e.full_name }}</option>{% endfor %}</select>
+    <button class="btn btn-sand">تسجيل</button></form></div>
+<div class="table-wrap"><table><tbody>
+{% for p in people %}<tr><td><a class="person" href="{{ url_for('employees.view', emp_id=p.id) }}"><div class="avatar">{{ p.initials }}</div><div><b>{{ p.full_name }}</b><span>{{ p.position }}</span></div></a></td>
+<td><span class="pill {{ 'good' if p.status == 'completed' else 'sand' }}">{{ 'أتمّ الدورة' if p.status == 'completed' else 'مسجّل' }}</span></td>
+<td><div class="row-actions">{% if p.status != 'completed' %}{{ m.post_btn(url_for('training.enrollment', enr_id=p.enr_id, action='complete'), 'تم الإتمام', 'btn-sm approve') }}{% endif %}
+{{ m.post_btn(url_for('training.enrollment', enr_id=p.enr_id, action='remove'), 'إزالة', 'btn-sm danger', 'إزالة الموظف من الدورة؟') }}</div></td></tr>
+{% else %}<tr><td class="empty">لا يوجد مسجّلون بعد.</td></tr>{% endfor %}
+</tbody></table></div></div>
+{% endblock %}

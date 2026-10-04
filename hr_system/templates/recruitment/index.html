@@ -1,0 +1,27 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% set page_label = 'التوظيف' %}{% set active_panel = 'recruitment' %}
+{% block content %}
+{% call m.page_head('التوظيف', 'الوظائف الشاغرة ولوحة المرشحين. عند نقل مرشح إلى «تم التعيين» يُنشأ ملف موظف تلقائياً.') %}
+  <a class="btn" href="{{ url_for('recruitment.cand_new', job=job) }}">＋ مرشح</a><a class="btn btn-primary" href="{{ url_for('recruitment.job_new') }}">＋ وظيفة شاغرة</a>
+{% endcall %}
+<div class="card"><div class="card-head"><h3>الوظائف</h3></div><div class="table-wrap"><table>
+<thead><tr><th>الوظيفة</th><th>الإدارة</th><th>الشواغر</th><th>المرشحون</th><th>الحالة</th><th></th></tr></thead><tbody>
+{% for j in jobs %}<tr><td><b>{{ j.title }}</b></td><td>{{ j.dept }}</td><td>{{ j.openings }}</td>
+<td><a class="link" href="{{ url_for('recruitment.index', job=j.id) }}">{{ j.cand_count }} مرشح</a></td>
+<td><span class="pill {{ 'good' if j.status == 'open' else 'gray' }}">{{ 'مفتوحة' if j.status == 'open' else 'مغلقة' }}</span></td>
+<td><div class="row-actions">{{ m.post_btn(url_for('recruitment.job_toggle', jid=j.id), 'إغلاق' if j.status == 'open' else 'إعادة فتح', 'btn-sm') }}
+{{ m.post_btn(url_for('recruitment.job_delete', jid=j.id), 'حذف', 'btn-sm danger', 'حذف الوظيفة؟') }}</div></td></tr>
+{% else %}<tr><td colspan="6" class="empty">لا توجد وظائف. انشر أول وظيفة شاغرة.</td></tr>{% endfor %}
+</tbody></table></div></div>
+
+<div class="page-head"><div><h2 style="font-size:17px">لوحة المرشحين</h2></div>{% if job %}<a class="link" href="{{ url_for('recruitment.index') }}">عرض كل المرشحين</a>{% endif %}</div>
+<div class="board">
+{% for key, label in stages %}<div class="col"><h4>{{ label }} <span class="pill gray">{{ board[key]|length }}</span></h4>
+  {% for c in board[key] %}<div class="cand"><b>{{ c.full_name }}</b><div class="job">{{ c.job_title }}{% if c.phone %} · <span class="num">{{ c.phone }}</span>{% endif %}</div>
+    <form method="POST" action="{{ url_for('recruitment.cand_stage', cid=c.id) }}">{{ m.csrf() }}<input type="hidden" name="job" value="{{ job }}">
+      <select name="stage" onchange="this.form.submit()" aria-label="نقل المرشح">{% for k, l in stages %}<option value="{{ k }}" {{ 'selected' if k == c.stage }}>{{ l }}</option>{% endfor %}</select></form>
+    {% if c.employee_id %}<a class="link" href="{{ url_for('employees.view', emp_id=c.employee_id) }}">ملف الموظف</a>{% else %}
+    <div style="margin-top:6px">{{ m.post_btn(url_for('recruitment.cand_delete', cid=c.id), 'حذف', 'btn-sm danger', 'حذف المرشح؟') }}</div>{% endif %}</div>
+  {% endfor %}</div>{% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% set page_label = 'التدريب والتطوير' %}{% set active_panel = 'training' %}
+{% block content %}
+{% call m.page_head('التدريب والتطوير', items|length ~ ' دورة') %}<a class="btn btn-primary" href="{{ url_for('training.new') }}">＋ دورة جديدة</a>{% endcall %}
+<div class="card"><div class="table-wrap"><table>
+<thead><tr><th>الدورة</th><th>المدرّب</th><th>الفترة</th><th>المسجّلون</th><th>الحالة</th><th></th></tr></thead><tbody>
+{% for t in items %}<tr>
+  <td><a href="{{ url_for('training.detail', tid=t.id) }}"><b>{{ t.title }}</b></a><br><span class="muted" style="font-size:11.5px">{{ t.location or '' }}</span></td>
+  <td>{{ t.trainer or '—' }}</td><td><span class="num">{{ t.start_date }}</span> ← <span class="num">{{ t.end_date }}</span></td>
+  <td>{{ t.enrolled }} / {{ t.seats }} <span class="muted">(أتمّ {{ t.done }})</span></td>
+  <td><span class="pill {{ {'upcoming':'info','ongoing':'good','finished':'gray'}[t.state[0]] }}">{{ t.state[1] }}</span></td>
+  <td><a class="btn-sm" href="{{ url_for('training.detail', tid=t.id) }}">إدارة</a></td>
+</tr>{% else %}<tr><td colspan="6" class="empty">لا توجد دورات. أضف أول دورة تدريبية.</td></tr>{% endfor %}
+</tbody></table></div></div>
+{% endblock %}

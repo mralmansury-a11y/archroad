@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% set page_label = 'مرشح جديد' %}{% set active_panel = 'recruitment' %}
+{% block content %}{{ m.page_head('إضافة مرشح') }}
+<div class="card"><div class="card-body"><form method="POST">{{ m.csrf() }}<div class="form-grid">
+  {{ m.select('الوظيفة', 'job_id', jobs, form.job_id, True, 'اختر الوظيفة') }}
+  {{ m.input('اسم المرشح', 'full_name', form.full_name, required=True) }}
+  {{ m.input('الهاتف', 'phone', form.phone) }}{{ m.input('البريد الإلكتروني', 'email', form.email, 'email') }}
+  {{ m.textarea('ملاحظات', 'notes', form.notes) }}
+</div><div class="form-actions"><button class="btn btn-primary" type="submit">إضافة</button><a class="btn" href="{{ url_for('recruitment.index') }}">إلغاء</a></div></form></div></div>
+{% endblock %}

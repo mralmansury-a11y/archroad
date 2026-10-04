@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% set page_label = 'مستخدم جديد' %}{% set active_panel = 'users' %}
+{% block content %}{{ m.page_head('إنشاء مستخدم') }}
+<div class="card"><div class="card-body"><form method="POST" autocomplete="off">{{ m.csrf() }}<div class="form-grid">
+  {{ m.input('اسم المستخدم', 'username', form.username, required=True) }}
+  {{ m.input('كلمة المرور (8 أحرف على الأقل)', 'password', '', 'password', True, 'minlength="8" autocomplete="new-password"') }}
+  {{ m.select('الدور', 'role', roles, form.role) }}
+  {{ m.select('ربط بموظف (اختياري)', 'employee_id', emps, form.employee_id, False, 'بدون ربط') }}
+</div><div class="form-actions"><button class="btn btn-primary" type="submit">إنشاء</button><a class="btn" href="{{ url_for('users.index') }}">إلغاء</a></div></form></div></div>
+{% endblock %}

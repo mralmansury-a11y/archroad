@@ -1,0 +1,34 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% set page_label = 'الحضور والانصراف' %}{% set active_panel = 'attendance' %}
+{% block content %}
+{% call m.page_head('الحضور والانصراف', 'سجل يوم ' ~ day ~ (' — عطلة نهاية الأسبوع' if is_weekend else '')) %}
+  <a class="btn" href="{{ url_for('attendance.report') }}">التقرير الشهري</a>
+  {{ m.post_btn(url_for('attendance.mark_all'), 'تسجيل حضور الجميع', 'btn btn-sand', 'تسجيل حضور (08:00) لكل من ليس له سجل في هذا اليوم؟', {'day': day}) }}
+{% endcall %}
+<form class="filters" method="GET"><input type="date" name="day" value="{{ day }}"><button class="btn" type="submit">عرض</button>
+  {% if day != today %}<a class="link" href="{{ url_for('attendance.index') }}">اليوم</a>{% endif %}</form>
+<div class="kpi-grid">
+  <div class="kpi-card"><div class="val">{{ counts.present }}</div><div class="lbl">حاضر</div></div>
+  <div class="kpi-card"><div class="val">{{ counts.late }}</div><div class="lbl">متأخر (بعد 08:30)</div></div>
+  <div class="kpi-card"><div class="val">{{ counts.absent }}</div><div class="lbl">غائب</div></div>
+  <div class="kpi-card"><div class="val">{{ counts.leave }}</div><div class="lbl">في إجازة <span class="muted">· بلا سجل: {{ counts.none }}</span></div></div>
+</div>
+<div class="card"><div class="table-wrap"><table>
+<thead><tr><th>الموظف</th><th>الحضور</th><th>الانصراف</th><th>الطريقة</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody>
+{% for r in rows %}
+<tr>
+  <td><div class="person"><div class="avatar">{{ r.initials }}</div><div><b>{{ r.full_name }}</b><span>{{ r.dept }}</span></div></div></td>
+  <td><span class="num">{{ r.check_in or '—' }}</span></td><td><span class="num">{{ r.check_out or '—' }}</span></td><td>{{ r.method or '—' }}</td>
+  <td>{% if r.status %}<span class="pill {{ {'present':'good','late':'warn','absent':'bad','leave':'info'}[r.status] }}">{{ ATT_LABELS[r.status] }}</span>{% else %}<span class="pill gray">لم يُسجَّل</span>{% endif %}</td>
+  <td><form class="row-actions" method="POST" action="{{ url_for('attendance.mark') }}">{{ m.csrf() }}
+    <input type="hidden" name="employee_id" value="{{ r.id }}"><input type="hidden" name="day" value="{{ day }}">
+    <button class="btn-sm approve" name="action" value="checkin">حضور</button>
+    <button class="btn-sm info" name="action" value="checkout">انصراف</button>
+    <button class="btn-sm reject" name="action" value="absent">غياب</button>
+    <button class="btn-sm warn" name="action" value="leave">إجازة</button>
+    {% if r.status %}<button class="btn-sm" name="action" value="reset" title="مسح السجل">مسح</button>{% endif %}
+  </form></td>
+</tr>
+{% endfor %}</tbody></table></div></div>
+<p class="muted" style="font-size:12px">يُسجَّل الحضور بتوقيت الخادم الحالي. عطلة الأسبوع: الجمعة والسبت.</p>
+{% endblock %}

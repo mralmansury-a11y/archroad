@@ -1,0 +1,32 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% set page_label = 'الرواتب' %}{% set active_panel = 'payroll' %}
+{% block content %}
+{% call m.page_head('الرواتب', 'الخصم التلقائي = (أيام الغياب + إجازات بدون راتب) × الأساسي ÷ 30') %}
+  <a class="btn" href="{{ url_for('payroll.export', month=month) }}">تصدير CSV</a>
+  {{ m.post_btn(url_for('payroll.generate'), 'إنشاء كشف الشهر', 'btn btn-primary', '', {'month': month}) }}
+{% endcall %}
+<form class="filters" method="GET"><input type="month" name="month" value="{{ month }}"><button class="btn" type="submit">عرض</button></form>
+<div class="kpi-grid">
+  <div class="kpi-card"><div class="val"><span class="num">{{ totals.net|money }}</span></div><div class="lbl">إجمالي الصافي (د.ل)</div></div>
+  <div class="kpi-card"><div class="val"><span class="num">{{ (totals.base + totals.allow)|money }}</span></div><div class="lbl">الأساسي + البدلات</div></div>
+  <div class="kpi-card"><div class="val"><span class="num">{{ totals.ded|money }}</span></div><div class="lbl">إجمالي الخصومات</div></div>
+  <div class="kpi-card"><div class="val">{{ totals.paid }} / {{ rows|length }}</div><div class="lbl">قسائم مدفوعة</div>
+    {% if rows and totals.paid < rows|length %}<div style="margin-top:8px">{{ m.post_btn(url_for('payroll.pay_all'), 'اعتماد دفع الكل', 'btn-sm approve', 'اعتماد دفع كل المسودات لهذا الشهر؟', {'month': month}) }}</div>{% endif %}</div>
+</div>
+<div class="card"><div class="table-wrap"><table>
+<thead><tr><th>الموظف</th><th>الأساسي</th><th>البدلات</th><th>مكافأة</th><th>خصومات</th><th>الصافي</th><th>الحالة</th><th></th></tr></thead><tbody>
+{% for p in rows %}<tr>
+  <td><div class="person"><div class="avatar">{{ p.initials }}</div><div><b>{{ p.full_name }}</b><span>{{ p.dept }}</span></div></div></td>
+  <td><span class="num">{{ p.base_salary|money }}</span></td><td><span class="num">{{ p.allowance|money }}</span></td>
+  {% if p.status == 'draft' %}
+  <td colspan="2"><form class="inline-form" method="POST" action="{{ url_for('payroll.update', pid=p.id) }}">{{ m.csrf() }}
+    <input type="number" name="bonus" value="{{ p.bonus }}" min="0" step="0.01" aria-label="مكافأة">
+    <input type="number" name="deductions" value="{{ p.deductions }}" min="0" step="0.01" aria-label="خصومات"><button class="btn-sm">حفظ</button></form></td>
+  {% else %}<td><span class="num">{{ p.bonus|money }}</span></td><td><span class="num">{{ p.deductions|money }}</span></td>{% endif %}
+  <td><b class="num">{{ p.net|money }}</b></td>
+  <td><span class="pill {{ 'good' if p.status == 'paid' else 'gray' }}">{{ 'مدفوع' if p.status == 'paid' else 'مسودة' }}</span></td>
+  <td><div class="row-actions"><a class="btn-sm" href="{{ url_for('payroll.slip', pid=p.id) }}">القسيمة</a>
+    {% if p.status == 'draft' %}{{ m.post_btn(url_for('payroll.pay', pid=p.id), 'دفع', 'btn-sm approve') }}{{ m.post_btn(url_for('payroll.delete', pid=p.id), 'حذف', 'btn-sm danger', 'حذف المسودة؟') }}{% endif %}</div></td>
+</tr>{% else %}<tr><td colspan="8" class="empty">لا يوجد كشف لهذا الشهر. اضغط «إنشاء كشف الشهر» لتوليده من بيانات الموظفين.</td></tr>{% endfor %}
+</tbody></table></div></div>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% set page_label = 'ملف الموظف' %}{% set active_panel = 'employees' %}
+{% block content %}
+<div class="card">
+  <div class="profile-head">
+    <div class="avatar">{% if photo %}<img src="{{ url_for('documents.file', emp_id=emp.id, doc_id=photo.id) }}" alt="{{ emp.full_name }}">{% else %}{{ emp.initials }}{% endif %}</div>
+    <div style="flex:1"><h2>{{ emp.full_name }}</h2><span class="muted">{{ emp.position }} — {{ emp.department_name }}</span></div>
+    <span class="pill {{ {'نشط':'good','إجازة':'warn','موقوف':'bad','منتهي':'gray'}[emp.status] }}">{{ emp.status }}</span>
+    <div class="actions">
+      <a class="btn" href="{{ url_for('employees.edit', emp_id=emp.id) }}">تعديل</a>
+      {% if session.get('role') == 'admin' %}{{ m.post_btn(url_for('employees.delete', emp_id=emp.id), 'حذف', 'btn btn-danger', 'سيُحذف الموظف وكل سجلاته نهائياً. متابعة؟') }}{% endif %}
+    </div>
+  </div>
+  <div class="info-grid">
+    <div><span>الرقم الوظيفي</span><b class="num">{{ emp.employee_code }}</b></div>
+    <div><span>تاريخ التعيين</span><b class="num">{{ emp.hire_date }}</b></div>
+    <div><span>نوع العقد</span><b>{{ emp.contract_type }}{% if emp.contract_end_date %} — ينتهي <span class="num">{{ emp.contract_end_date }}</span>{% endif %}</b></div>
+    <div><span>الهاتف</span><b class="num">{{ emp.phone or '—' }}</b></div>
+    <div><span>البريد</span><b class="num">{{ emp.email or '—' }}</b></div>
+    <div><span>الراتب (أساسي + بدلات)</span><b class="num">{{ emp.base_salary|money }} + {{ emp.allowance|money }}</b></div>
+    <div><span>الإجازة السنوية المستخدمة</span><b>{{ used }} من {{ quota }} يوم</b><div class="progress" style="margin-top:6px"><i style="width:{{ (used/quota*100)|round|int }}%"></i></div></div>
+  </div>
+</div>
+
+<div class="card" id="documents">
+  <div class="card-head"><h3>مستندات الموظف</h3>
+    <span class="pill {{ 'good' if docs_done == doc_types|length else 'warn' }}">{{ docs_done }} من {{ doc_types|length }} أنواع مرفوعة</span></div>
+  <div class="card-body">
+    <form class="upload-form" method="POST" enctype="multipart/form-data" action="{{ url_for('documents.upload', emp_id=emp.id) }}">{{ m.csrf() }}
+      <div><label for="doc_type">نوع المستند</label>
+        <select id="doc_type" name="doc_type" required>{% for k, t in doc_types %}<option value="{{ k }}">{{ t }}</option>{% endfor %}</select></div>
+      <div><label for="files">الملفات</label>
+        <input type="file" id="files" name="files" multiple required accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"></div>
+      <button class="btn btn-primary" type="submit">رفع المستند</button>
+    </form>
+    <p class="doc-hint">الصيغ المسموحة: PDF وJPG وJPEG وPNG — الحد الأقصى 5 ميجابايت للملف الواحد. الصورة الشخصية تقبل الصور فقط، وآخر صورة ترفعها تظهر في ملف الموظف.</p>
+  </div>
+  <div class="doc-groups">
+  {% for k, t in doc_types %}{% set items = docs|selectattr('doc_type', 'equalto', k)|list %}
+    <div class="doc-group"><h4>{{ t }} <span class="pill {{ 'good' if items else 'gray' }}">{{ items|length ~ ' ملف' if items else 'غير مرفوع' }}</span></h4>
+    {% for d in items %}<div class="doc-item">
+      <a class="doc-thumb" href="{{ url_for('documents.file', emp_id=emp.id, doc_id=d.id) }}" target="_blank" rel="noopener" aria-label="عرض {{ d.original_name }}">{% if d.kind != 'pdf' %}<img src="{{ url_for('documents.file', emp_id=emp.id, doc_id=d.id) }}" alt="" loading="lazy">{% else %}PDF{% endif %}</a>
+      <div class="doc-meta"><b title="{{ d.original_name }}">{{ d.original_name }}</b><span class="num">{{ d.uploaded_at }}</span> · <span class="num">{{ d.size|filesize }}</span></div>
+      <div class="row-actions"><a class="btn-sm" href="{{ url_for('documents.file', emp_id=emp.id, doc_id=d.id) }}" target="_blank" rel="noopener">عرض</a>
+        <a class="btn-sm" href="{{ url_for('documents.file', emp_id=emp.id, doc_id=d.id, dl=1) }}">تنزيل</a>
+        {{ m.post_btn(url_for('documents.delete', emp_id=emp.id, doc_id=d.id), 'حذف', 'btn-sm danger', 'حذف هذا المستند نهائياً؟') }}</div>
+    </div>{% else %}<p class="doc-empty">لم يُرفع أي ملف من هذا النوع.</p>{% endfor %}</div>
+  {% endfor %}
+  </div>
+</div>
+
+<div class="grid-eq">
+  <div class="card"><div class="card-head"><h3>آخر الإجازات</h3><a class="link" href="{{ url_for('leaves.new') }}">طلب جديد</a></div>
+    <div class="table-wrap"><table><tbody>
+    {% for l in leaves %}<tr><td>{{ l.leave_type }}</td><td><span class="num">{{ l.start_date }}</span></td><td>{{ l.days }} يوم</td>
+      <td><span class="pill {{ {'pending':'warn','approved':'good','rejected':'bad'}[l.status] }}">{{ LEAVE_LABELS[l.status] }}</span></td></tr>
+    {% else %}<tr><td class="empty">لا توجد إجازات</td></tr>{% endfor %}</tbody></table></div></div>
+  <div class="card"><div class="card-head"><h3>آخر سجلات الحضور</h3></div>
+    <div class="table-wrap"><table><tbody>
+    {% for a in att %}<tr><td><span class="num">{{ a.day }}</span></td><td><span class="num">{{ a.check_in or '—' }}</span> ← <span class="num">{{ a.check_out or '—' }}</span></td>
+      <td><span class="pill {{ {'present':'good','late':'warn','absent':'bad','leave':'info'}[a.status] }}">{{ ATT_LABELS[a.status] }}</span></td></tr>
+    {% else %}<tr><td class="empty">لا توجد سجلات</td></tr>{% endfor %}</tbody></table></div></div>
+</div>
+<div class="grid-eq">
+  <div class="card"><div class="card-head"><h3>تقييمات الأداء</h3></div>
+    <div class="table-wrap"><table><tbody>
+    {% for r in reviews %}<tr><td><span class="num">{{ r.period }}</span></td><td><b class="num">{{ r.overall|round|int }}%</b></td><td><span class="pill {{ r.overall|rating_class }}">{{ r.overall|rating }}</span></td></tr>
+    {% else %}<tr><td class="empty">لا توجد تقييمات</td></tr>{% endfor %}</tbody></table></div></div>
+  <div class="card"><div class="card-head"><h3>الرواتب والدورات</h3></div>
+    <div class="table-wrap"><table><tbody>
+    {% for s in slips %}<tr><td><span class="num">{{ s.month }}</span></td><td><b class="num">{{ s.net|money }}</b></td><td><span class="pill {{ 'good' if s.status == 'paid' else 'gray' }}">{{ 'مدفوع' if s.status == 'paid' else 'مسودة' }}</span></td></tr>{% endfor %}
+    {% for t in trainings %}<tr><td colspan="2">{{ t.title }}</td><td><span class="pill {{ 'good' if t.status == 'completed' else 'sand' }}">{{ 'أتمّها' if t.status == 'completed' else 'مسجّل' }}</span></td></tr>{% endfor %}
+    {% if not slips and not trainings %}<tr><td class="empty">لا توجد بيانات</td></tr>{% endif %}</tbody></table></div></div>
+</div>
+{% endblock %}

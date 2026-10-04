@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% set page_label = 'قسيمة راتب' %}{% set active_panel = 'payroll' %}
+{% block content %}
+<div class="actions no-print" style="margin-bottom:16px"><button class="btn btn-primary" onclick="window.print()">طباعة</button><a class="btn" href="{{ url_for('payroll.index', month=p.month) }}">رجوع</a></div>
+<div class="slip">
+  <div class="slip-head"><img src="{{ url_for('static', filename='img/emblem.png') }}" alt=""><div><h2>{{ ORG_NAME }}</h2><span class="muted">قسيمة راتب شهر <span class="num">{{ p.month }}</span></span></div></div>
+  <p><b>{{ p.full_name }}</b> — {{ p.position }} · {{ p.dept }} · <span class="num">{{ p.employee_code }}</span></p><br>
+  <table>
+    <tr><td>الراتب الأساسي</td><td><span class="num">{{ p.base_salary|money }}</span></td></tr>
+    <tr><td>البدلات</td><td><span class="num">{{ p.allowance|money }}</span></td></tr>
+    <tr><td>المكافآت</td><td><span class="num">{{ p.bonus|money }}</span></td></tr>
+    <tr><td>الخصومات</td><td><span class="num">− {{ p.deductions|money }}</span></td></tr>
+    <tr class="net"><td>صافي الراتب (د.ل)</td><td><span class="num">{{ p.net|money }}</span></td></tr>
+  </table><br>
+  <p class="muted" style="font-size:12.5px">الحالة: {{ 'مدفوع بتاريخ ' ~ p.paid_at if p.status == 'paid' else 'مسودة — لم يُعتمد الدفع بعد' }}</p>
+</div>
+{% endblock %}

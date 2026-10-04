@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% set page_label = 'المستخدمون' %}{% set active_panel = 'users' %}
+{% block content %}
+{% call m.page_head('المستخدمون', 'حسابات الدخول إلى النظام (للمسؤول فقط)') %}<a class="btn btn-primary" href="{{ url_for('users.new') }}">＋ مستخدم جديد</a>{% endcall %}
+<div class="card"><div class="table-wrap"><table>
+<thead><tr><th>اسم المستخدم</th><th>الدور</th><th>الموظف المرتبط</th><th>كلمة مرور جديدة</th><th></th></tr></thead><tbody>
+{% for u in rows %}<tr><td><b class="num">{{ u.username }}</b></td><td><span class="pill {{ 'sand' if u.role == 'admin' else 'info' }}">{{ roles[u.role] }}</span></td><td>{{ u.full_name or '—' }}</td>
+<td><form class="inline-form" method="POST" action="{{ url_for('users.reset', uid=u.id) }}">{{ m.csrf() }}<input type="password" name="password" placeholder="8 أحرف على الأقل" minlength="8" style="width:160px" autocomplete="new-password"><button class="btn-sm">تعيين</button></form></td>
+<td>{% if u.id != session.get('user_id') %}{{ m.post_btn(url_for('users.delete', uid=u.id), 'حذف', 'btn-sm danger', 'حذف هذا المستخدم؟') }}{% else %}<span class="muted">حسابك</span>{% endif %}</td></tr>{% endfor %}
+</tbody></table></div></div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% set page_label = 'الأداء' %}{% set active_panel = 'performance' %}
+{% block content %}
+{% call m.page_head('تقييم الأداء', 'أربعة معايير من 5 تُحوَّل إلى نسبة إجمالية') %}<a class="btn btn-primary" href="{{ url_for('performance.new') }}">＋ تقييم جديد</a>{% endcall %}
+<form class="filters" method="GET"><select name="period" onchange="this.form.submit()"><option value="">كل الفترات</option>
+  {% for p in periods %}<option {{ 'selected' if p == period }}>{{ p }}</option>{% endfor %}</select></form>
+<div class="kpi-grid three">
+  <div class="kpi-card"><div class="val">{{ rows|length }}</div><div class="lbl">عدد التقييمات</div></div>
+  <div class="kpi-card"><div class="val">{{ avg }}%</div><div class="lbl">متوسط الأداء</div></div>
+  <div class="kpi-card"><div class="val" style="font-size:18px">{{ rows[0].full_name if rows else '—' }}</div><div class="lbl">الأعلى أداءً</div></div>
+</div>
+<div class="card"><div class="table-wrap"><table>
+<thead><tr><th>الموظف</th><th>الفترة</th><th>الجودة</th><th>الإنتاجية</th><th>العمل الجماعي</th><th>الالتزام</th><th>الإجمالي</th><th></th></tr></thead><tbody>
+{% for r in rows %}<tr>
+  <td><div class="person"><div class="avatar">{{ r.initials }}</div><div><b>{{ r.full_name }}</b><span>{{ r.notes or r.position }}</span></div></div></td>
+  <td><span class="num">{{ r.period }}</span></td><td>{{ r.quality }}/5</td><td>{{ r.productivity }}/5</td><td>{{ r.teamwork }}/5</td><td>{{ r.commitment }}/5</td>
+  <td><div class="score"><b class="num">{{ r.overall|round|int }}%</b><span class="pill {{ r.overall|rating_class }}">{{ r.overall|rating }}</span></div></td>
+  <td>{{ m.post_btn(url_for('performance.delete', rid=r.id), 'حذف', 'btn-sm danger', 'حذف التقييم؟') }}</td>
+</tr>{% else %}<tr><td colspan="8" class="empty">لا توجد تقييمات بعد.</td></tr>{% endfor %}
+</tbody></table></div></div>
+{% endblock %}

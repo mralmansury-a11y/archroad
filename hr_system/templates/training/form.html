@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% set page_label = 'تعديل دورة' if editing else 'دورة جديدة' %}{% set active_panel = 'training' %}
+{% block content %}{{ m.page_head(page_label) }}
+<div class="card"><div class="card-body"><form method="POST">{{ m.csrf() }}<div class="form-grid">
+  {{ m.input('عنوان الدورة', 'title', form.title, required=True, full=True) }}
+  {{ m.input('المدرّب', 'trainer', form.trainer) }}{{ m.input('المكان', 'location', form.location) }}
+  {{ m.input('تاريخ البداية', 'start_date', form.start_date, 'date', True) }}{{ m.input('تاريخ النهاية', 'end_date', form.end_date, 'date', True) }}
+  {{ m.input('عدد المقاعد', 'seats', form.seats, 'number', attrs='min="1"') }}<div></div>
+  {{ m.textarea('الوصف', 'description', form.description) }}
+</div><div class="form-actions"><button class="btn btn-primary" type="submit">حفظ</button>
+<a class="btn" href="{{ url_for('training.detail', tid=tid) if editing else url_for('training.index') }}">إلغاء</a></div></form></div></div>
+{% endblock %}

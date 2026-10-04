@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% set page_label = 'طلب إجازة' %}{% set active_panel = 'leaves' %}
+{% block content %}
+{{ m.page_head('طلب إجازة جديد', 'تُحسب الأيام تلقائياً من تاريخ البداية إلى النهاية') }}
+<div class="card"><div class="card-body"><form method="POST">{{ m.csrf() }}
+<div class="form-grid">
+  {{ m.select('الموظف', 'employee_id', emps, form.employee_id, True, 'اختر الموظف') }}
+  {{ m.select('نوع الإجازة', 'leave_type', types|pairs, form.leave_type) }}
+  {{ m.input('من تاريخ', 'start_date', form.start_date, 'date', True) }}
+  {{ m.input('إلى تاريخ', 'end_date', form.end_date, 'date', True) }}
+  {{ m.textarea('السبب (اختياري)', 'reason', form.reason) }}
+</div>
+<div class="form-actions"><button class="btn btn-primary" type="submit">تقديم الطلب</button><a class="btn" href="{{ url_for('leaves.index') }}">إلغاء</a></div>
+</form></div></div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% set page_label = 'الإجازات' %}{% set active_panel = 'leaves' %}
+{% block content %}
+{% call m.page_head('الإجازات', 'الطلبات وأرصدة الإجازة السنوية (' ~ quota ~ ' يوماً للموظف)') %}<a class="btn btn-primary" href="{{ url_for('leaves.new') }}">＋ طلب إجازة</a>{% endcall %}
+<div class="tabs">
+  <a class="tab {{ 'active' if not status }}" href="{{ url_for('leaves.index') }}">الكل</a>
+  <a class="tab {{ 'active' if status == 'pending' }}" href="{{ url_for('leaves.index', status='pending') }}">قيد المراجعة</a>
+  <a class="tab {{ 'active' if status == 'approved' }}" href="{{ url_for('leaves.index', status='approved') }}">مقبولة</a>
+  <a class="tab {{ 'active' if status == 'rejected' }}" href="{{ url_for('leaves.index', status='rejected') }}">مرفوضة</a>
+</div>
+<div class="card"><div class="table-wrap"><table>
+<thead><tr><th>الموظف</th><th>النوع</th><th>من</th><th>إلى</th><th>الأيام</th><th>الحالة</th><th></th></tr></thead><tbody>
+{% for l in rows %}<tr>
+  <td><div class="person"><div class="avatar">{{ l.initials }}</div><div><b>{{ l.full_name }}</b>{% if l.reason %}<span>{{ l.reason }}</span>{% endif %}</div></div></td>
+  <td>{{ l.leave_type }}</td><td><span class="num">{{ l.start_date }}</span></td><td><span class="num">{{ l.end_date }}</span></td><td>{{ l.days }}</td>
+  <td><span class="pill {{ {'pending':'warn','approved':'good','rejected':'bad'}[l.status] }}">{{ LEAVE_LABELS[l.status] }}</span></td>
+  <td><div class="row-actions">{% if l.status == 'pending' %}
+    {{ m.post_btn(url_for('leaves.decide', rid=l.id, decision='approve'), 'قبول', 'btn-sm approve', '', {'status': status}) }}
+    {{ m.post_btn(url_for('leaves.decide', rid=l.id, decision='reject'), 'رفض', 'btn-sm reject', '', {'status': status}) }}
+    {{ m.post_btn(url_for('leaves.delete', rid=l.id), 'إلغاء', 'btn-sm', 'إلغاء هذا الطلب؟') }}{% endif %}</div></td>
+</tr>{% else %}<tr><td colspan="7" class="empty">لا توجد طلبات.</td></tr>{% endfor %}
+</tbody></table></div></div>
+
+<div class="card"><div class="card-head"><h3>أرصدة الإجازة السنوية — {{ balances|length }} موظف</h3></div>
+<div class="table-wrap"><table><thead><tr><th>الموظف</th><th>المستخدم</th><th>المتبقي</th><th style="width:30%">الاستهلاك</th></tr></thead><tbody>
+{% for b in balances %}<tr><td><a class="person" href="{{ url_for('employees.view', emp_id=b.id) }}"><div class="avatar">{{ b.initials }}</div><b>{{ b.full_name }}</b></a></td>
+<td>{{ b.used }}</td><td><b>{{ b.left }}</b></td><td><div class="progress"><i style="width:{{ (b.used/quota*100)|round|int }}%"></i></div></td></tr>{% endfor %}
+</tbody></table></div></div>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% set page_label = 'وظيفة شاغرة' %}{% set active_panel = 'recruitment' %}
+{% block content %}{{ m.page_head('نشر وظيفة شاغرة') }}
+<div class="card"><div class="card-body"><form method="POST">{{ m.csrf() }}<div class="form-grid">
+  {{ m.input('المسمى الوظيفي', 'title', form.title, required=True) }}
+  {{ m.select('الإدارة', 'department_id', departments, form.department_id, True, 'اختر الإدارة') }}
+  {{ m.input('عدد الشواغر', 'openings', form.openings, 'number', attrs='min="1"') }}<div></div>
+  {{ m.textarea('الوصف والمتطلبات', 'description', form.description, 4) }}
+</div><div class="form-actions"><button class="btn btn-primary" type="submit">نشر</button><a class="btn" href="{{ url_for('recruitment.index') }}">إلغاء</a></div></form></div></div>
+{% endblock %}

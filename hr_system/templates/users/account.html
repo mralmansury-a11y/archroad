@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% set page_label = 'حسابي' %}{% set active_panel = 'account' %}
+{% block content %}{{ m.page_head('تغيير كلمة المرور', 'المستخدم الحالي: ' ~ session.get('username')) }}
+<div class="card" style="max-width:520px"><div class="card-body"><form method="POST">{{ m.csrf() }}
+  {{ m.input('كلمة المرور الحالية', 'old', '', 'password', True, 'autocomplete="current-password"') }}
+  {{ m.input('كلمة المرور الجديدة', 'new', '', 'password', True, 'minlength="8" autocomplete="new-password"') }}
+  {{ m.input('تأكيد كلمة المرور الجديدة', 'again', '', 'password', True, 'autocomplete="new-password"') }}
+  <div class="form-actions"><button class="btn btn-primary" type="submit">تغيير كلمة المرور</button></div>
+</form></div></div>
+{% endblock %}

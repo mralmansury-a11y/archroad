@@ -1,0 +1,26 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% set page_label = 'تعديل موظف' if editing else 'إضافة موظف' %}{% set active_panel = 'employees' %}
+{% block content %}
+{{ m.page_head(page_label, emp.employee_code if editing else 'سيُولَّد الرقم الوظيفي تلقائياً') }}
+<div class="card"><div class="card-body">
+<form method="POST">{{ m.csrf() }}
+  <div class="form-grid">
+    {{ m.input('الاسم الكامل', 'full_name', emp.full_name, required=True) }}
+    {{ m.select('الإدارة', 'department_id', departments, emp.department_id, True, 'اختر الإدارة') }}
+    {{ m.input('المسمى الوظيفي', 'position', emp.position, required=True) }}
+    {{ m.input('تاريخ التعيين', 'hire_date', emp.hire_date, 'date', True) }}
+    {{ m.select('نوع العقد', 'contract_type', contracts|pairs, emp.contract_type) }}
+    {{ m.input('تاريخ انتهاء العقد (اختياري)', 'contract_end_date', emp.contract_end_date, 'date') }}
+    {{ m.select('الحالة', 'status', statuses|pairs, emp.status) }}
+    {{ m.input('الهاتف', 'phone', emp.phone) }}
+    {{ m.input('البريد الإلكتروني', 'email', emp.email, 'email') }}
+    <div></div>
+    {{ m.input('الراتب الأساسي (د.ل)', 'base_salary', emp.base_salary, 'number', attrs='min="0" step="0.01"') }}
+    {{ m.input('البدلات (د.ل)', 'allowance', emp.allowance, 'number', attrs='min="0" step="0.01"') }}
+  </div>
+  <div class="form-actions"><button class="btn btn-primary" type="submit">حفظ</button>
+    <a class="btn" href="{{ url_for('employees.view', emp_id=emp.id) if editing else url_for('employees.index') }}">إلغاء</a></div>
+</form>
+{% if not editing %}<p class="muted" style="font-size:12.5px;margin-top:14px">يمكنك رفع مستندات الموظف (جواز السفر، الرقم الوطني، الصورة الشخصية، عقد العمل) من صفحة ملفه بعد الحفظ.</p>{% endif %}
+</div></div>
+{% endblock %}

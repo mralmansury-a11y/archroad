@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% set page_label = 'تنبيه' %}
+{% block content %}
+<div class="empty-module"><h3>{{ code }}</h3><p class="muted">{{ message }}</p><br>
+<a class="btn btn-primary" href="{{ url_for('dashboard') }}">العودة إلى لوحة التحكم</a></div>
+{% endblock %}

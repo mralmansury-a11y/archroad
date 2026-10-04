@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% set page_label = 'تقرير الحضور الشهري' %}{% set active_panel = 'attendance' %}
+{% block content %}
+{% call m.page_head('تقرير الحضور الشهري', 'ملخص أيام الحضور والغياب لكل موظف') %}<a class="btn" href="{{ url_for('attendance.index') }}">السجل اليومي</a>{% endcall %}
+<form class="filters" method="GET"><input type="month" name="month" value="{{ month }}"><button class="btn" type="submit">عرض</button></form>
+<div class="card"><div class="table-wrap"><table>
+<thead><tr><th>الموظف</th><th>الإدارة</th><th>حضور</th><th>تأخير</th><th>غياب</th><th>إجازة</th></tr></thead><tbody>
+{% for r in rows %}<tr><td><a class="person" href="{{ url_for('employees.view', emp_id=r.id) }}"><div class="avatar">{{ r.initials }}</div><b>{{ r.full_name }}</b></a></td>
+<td>{{ r.dept }}</td><td><span class="pill good">{{ r.present or 0 }}</span></td><td><span class="pill warn">{{ r.late or 0 }}</span></td>
+<td><span class="pill bad">{{ r.absent or 0 }}</span></td><td><span class="pill info">{{ r.leave or 0 }}</span></td></tr>{% endfor %}
+</tbody></table></div></div>
+{% endblock %}

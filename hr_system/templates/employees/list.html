@@ -1,0 +1,25 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% set page_label = 'الموظفون' %}{% set active_panel = 'employees' %}
+{% block content %}
+{% call m.page_head('الموظفون', rows|length ~ ' موظف') %}<a class="btn btn-primary" href="{{ url_for('employees.new') }}">＋ إضافة موظف</a>{% endcall %}
+<form class="filters" method="GET">
+  <input type="search" name="q" value="{{ q }}" placeholder="الاسم أو الرقم الوظيفي أو المسمى">
+  <select name="dept"><option value="">كل الإدارات</option>{% for v,t in departments %}<option value="{{ v }}" {{ 'selected' if dept|string == v|string }}>{{ t }}</option>{% endfor %}</select>
+  <select name="status"><option value="">كل الحالات</option>{% for s in statuses %}<option {{ 'selected' if status == s }}>{{ s }}</option>{% endfor %}</select>
+  <button class="btn" type="submit">بحث</button>
+  {% if q or dept or status %}<a class="link" href="{{ url_for('employees.index') }}">مسح الفلاتر</a>{% endif %}
+</form>
+<div class="card"><div class="table-wrap"><table>
+  <thead><tr><th>الموظف</th><th>الرقم</th><th>الإدارة</th><th>نوع العقد</th><th>الحالة</th><th></th></tr></thead>
+  <tbody>
+  {% for e in rows %}
+  <tr>
+    <td><a class="person" href="{{ url_for('employees.view', emp_id=e.id) }}"><div class="avatar">{{ e.initials }}</div><div><b>{{ e.full_name }}</b><span>{{ e.position }}</span></div></a></td>
+    <td><span class="num">{{ e.employee_code }}</span></td><td>{{ e.department_name }}</td><td>{{ e.contract_type }}</td>
+    <td><span class="pill {{ {'نشط':'good','إجازة':'warn','موقوف':'bad','منتهي':'gray'}[e.status] }}">{{ e.status }}</span></td>
+    <td><div class="row-actions"><a class="btn-sm" href="{{ url_for('employees.view', emp_id=e.id) }}">الملف</a><a class="btn-sm" href="{{ url_for('employees.edit', emp_id=e.id) }}">تعديل</a></div></td>
+  </tr>
+  {% else %}<tr><td colspan="6" class="empty">لا يوجد موظفون مطابقون للبحث.</td></tr>{% endfor %}
+  </tbody>
+</table></div></div>
+{% endblock %}

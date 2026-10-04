@@ -1,0 +1,30 @@
+{% macro csrf() %}<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">{% endmacro %}
+
+{% macro input(label, name, value='', type='text', required=False, attrs='', full=False) -%}
+<div class="field{{ ' full' if full }}"><label for="{{ name }}">{{ label }}{% if required %} <i class="req">*</i>{% endif %}</label>
+<input type="{{ type }}" id="{{ name }}" name="{{ name }}" value="{{ value if value is not none else '' }}" {{ 'required' if required }} {{ attrs|safe }}></div>
+{%- endmacro %}
+
+{% macro select(label, name, options, selected=None, required=False, blank=None, full=False) -%}
+<div class="field{{ ' full' if full }}"><label for="{{ name }}">{{ label }}{% if required %} <i class="req">*</i>{% endif %}</label>
+<select id="{{ name }}" name="{{ name }}" {{ 'required' if required }}>
+{% if blank %}<option value="">{{ blank }}</option>{% endif %}
+{% for v, t in options %}<option value="{{ v }}" {{ 'selected' if selected is not none and selected|string == v|string }}>{{ t }}</option>{% endfor %}
+</select></div>
+{%- endmacro %}
+
+{% macro textarea(label, name, value='', rows=3) -%}
+<div class="field full"><label for="{{ name }}">{{ label }}</label>
+<textarea id="{{ name }}" name="{{ name }}" rows="{{ rows }}">{{ value or '' }}</textarea></div>
+{%- endmacro %}
+
+{% macro page_head(title, sub='') -%}
+<div class="page-head"><div><h2>{{ title }}</h2>{% if sub %}<p>{{ sub }}</p>{% endif %}</div><div class="actions">{{ caller() if caller else '' }}</div></div>
+{%- endmacro %}
+
+{% macro post_btn(url, label, cls='btn-sm', confirm='', hidden={}) -%}
+<form method="POST" action="{{ url }}" {% if confirm %}data-confirm="{{ confirm }}"{% endif %}>
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+{% for k, v in hidden.items() %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+<button class="{{ cls }}" type="submit">{{ label }}</button></form>
+{%- endmacro %}
